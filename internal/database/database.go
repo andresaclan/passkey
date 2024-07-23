@@ -25,11 +25,11 @@ func New() *sql.DB {
 		fmt.Fprintf(os.Stderr, "failed to open db %s: %s", url, err)
 		os.Exit(1)
 	}
-	// queryUsers(db)
 
-	// drop tables
+	// drop tables to start fresh
 	db.Exec(`DROP TABLE sessions;`)
 	db.Exec(`DROP TABLE users;`)
+
 	//create tables if they dont exist
 	db.Exec(`CREATE TABLE IF NOT EXISTS users (
 		id BLOB PRIMARY KEY,
@@ -111,9 +111,7 @@ func CreateUser(db *sql.DB, username string) (user.User, error) {
 
 // Saves updated user to Database (ex. if any credentials were updated we need to save that)
 func SaveUser(db *sql.DB, u user.User) error {
-	fmt.Println("Saving User", u.DisplayName)
 	query := `UPDATE users SET creds = ? WHERE id = ?`
-	fmt.Println("len of creds for user", len(u.WebAuthnCredentials()))
 	// Execute the update statement
 	credentialsJSON, err := json.Marshal(u.WebAuthnCredentials())
 	if err != nil {
@@ -179,31 +177,3 @@ func GenSessionID() (string, error) {
 	return base64.URLEncoding.EncodeToString(b), nil
 
 }
-
-// // TODO update this function
-// func queryUsers(db *sql.DB) {
-// 	rows, err := db.Query("SELECT * FROM users")
-// 	if err != nil {
-// 		fmt.Fprintf(os.Stderr, "failed to execute query: %v\n", err)
-// 		os.Exit(1)
-// 	}
-// 	defer rows.Close()
-
-// 	// var users []User
-
-// 	for rows.Next() {
-// 		var user user.User
-
-// 		if err := rows.Scan(&user.ID, &user.Name); err != nil {
-// 			fmt.Println("Error scanning row:", err)
-// 			return
-// 		}
-
-// 		// users = append(users, user)
-// 		fmt.Println(user.ID, user.Name)
-// 	}
-
-// 	if err := rows.Err(); err != nil {
-// 		fmt.Println("Error during rows iteration:", err)
-// 	}
-// }
